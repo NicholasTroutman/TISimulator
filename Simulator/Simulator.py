@@ -5,6 +5,8 @@ from itertools import combinations
 import csv
 from datetime import datetime
 import sys
+import os
+
 
 MaxRounds=500
 
@@ -19,6 +21,37 @@ vectors = np.array([
     [12, 6]     # Warsun
 ])
 
+def read_first_half_of_rows(directory):
+    """Reads the first half of all rows from each CSV file in the specified directory."""
+    results = {}  # Dictionary to store results for each file
+
+    # Iterate through each file in the directory
+    for filename in os.listdir(directory):
+        if filename.endswith('.csv'):  # Check for CSV files
+            file_path = os.path.join(directory, filename)
+            with open(file_path, 'r') as f:
+                reader = csv.reader(f)
+                header = next(reader)  # Read the header
+                rows = list(reader)  # Read all rows into a list
+
+                # Calculate the number of rows to read (first half)
+                
+                half_index = len(rows) // 2
+                first_half_rows = rows[:half_index]  # Get the first half of the rows
+
+                # Store the results in the dictionary
+                results[filename] = {
+                    'header': header,
+                    'first_half': first_half_rows
+                }
+                #print("\n\n")
+                #print(filename,"  --  ",len(results[filename]), "  - ",len(rows)," ~ ",half_index)
+                #print(results[filename])
+                #print("\n")
+                #print(results[filename]['first_half'])
+                #print(results[filename])
+
+    return results #in a dictionary, results[filename]['first_half'] to get data in list of lists
 
 def sort_key(ship):
     # If hit is a list, use the first element; otherwise, use the hit value directly
@@ -85,8 +118,12 @@ def createFleet(fleet):
     for i in range(fleet[4]):
         newFleet.append(Dreadnaught())
         
+    #for i in range(fleet[5]):
+        #newFleet.append(Flagship(faction))
+        
     for i in range(fleet[5]):
         newFleet.append(Warsun())
+        
     
     return(newFleet)
     
@@ -270,7 +307,7 @@ def Combat(fleet1,fleet2):
 
 
 
-def Simulate(cost, capacity):
+def Simulate(cost, capacity, subdir):
     N =  cost# Example value for N
     print("Create all Fleet Combinations: ",N)
     fleets = find_all_combinations(N, capacity)
@@ -286,10 +323,10 @@ def Simulate(cost, capacity):
         
 
     #combat
-    mNumber=0
+    #mNumber=0
     for matchup in matchups:
-        mNumber=mNumber+1
-        print(mNumber/len(matchups))
+        #mNumber=mNumber+1
+        #print(mNumber/len(matchups))
         #print("Matchup: ",fleets[matchup[0]],fleets[matchup[1]])
         [f1score,f2score] =Combat(fleets[matchup[0]],fleets[matchup[1]])
         #print(f1score)
@@ -316,10 +353,15 @@ def Simulate(cost, capacity):
         #print("fleetSize: ",fleetSize)
         f=np.append(f,[fleetSize,f[-1]/numRounds, N])
         results.append(f)
-        
+    
+    #print("\n\nORDER\n")
+    #print([row[6] for row in results])
+    resultsSorted = sorted(results, key=lambda x: x[6], reverse=True)
+    #print([row[6] for row in resultsSorted])
+
     # Get the current timestamp and format it
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
-    filename = f'Results\TIResults_Cost_{N}_Capacity_{capacity}.csv'  # Create the filename with timestamp
+    filename = f"{subdir}\TIResults_Cost_{N}_Capacity_{capacity}.csv"  # Create the filename with variables
         
     # Open the CSV file with newline='' to prevent extra new lines
     with open(filename, 'w', newline='') as f:
@@ -327,13 +369,22 @@ def Simulate(cost, capacity):
         write = csv.writer(f)
         fields = ["Fighters","Carriers","Cruisers","Destroyers","Dreadnaught","Warsun","Score", "FleetSize","WinRate", "Cost"]
         write.writerow(fields)  # Write the header
-        write.writerows(results)  # Write the data rows
+        write.writerows(resultsSorted)  # Write the data rows
 
 
 
 ##GLOBAL VARIABLES
 results=[]
 
+def createAllSimulations(cost,fleetCapacity,subdir):
+    for fleetCapacity in range(fleetCapacity[0],fleetCapacity[1]):
+        for cost in range(2,cost):
+            print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
+            Simulate(cost,fleetCapacity,subdir)
+            results=[]
+        
+        
+        
 
 #MAIN
 if __name__ == "__main__":
@@ -343,8 +394,14 @@ if __name__ == "__main__":
     for i, arg in enumerate(sys.argv[1:], start=1):
         print(f"Argument {i}: {arg}")
     
-    fleetCapacity=6
+    firstHalf = read_first_half_of_rows("Results/BasicResults")
+    print(firstHalf)
+    exit()
+    ##Basic Simulation of all cost equivalent simulations w/ maximum fleet capacity.
+    for fleetCapacity in range(3,7):
+        for cost in range(2,21): #cost is cost
+            print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
+            Simulate(cost,fleetCapacity,"Results/test")
+            results=[]
+            
     
-    for cost in range(2,21): #cost is cost
-        Simulate(cost,fleetCapacity)
-        results=[]
