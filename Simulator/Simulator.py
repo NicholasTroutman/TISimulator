@@ -384,7 +384,7 @@ def createAllSimulations(cost,fleetCapacity,subdir):
             results=[]
         
         
-        
+def         
 
 #MAIN
 if __name__ == "__main__":
@@ -394,14 +394,25 @@ if __name__ == "__main__":
     for i, arg in enumerate(sys.argv[1:], start=1):
         print(f"Argument {i}: {arg}")
     
-    firstHalf = read_first_half_of_rows("Results/BasicResults")
-    print(firstHalf)
+    directory = "Results/BasicResults"
+    halfData = read_first_half_of_rows(directory)
+    
+    ##Scrape the data into fleets:
+    for filename in os.listdir(directory):
+        print(filename, "\n",halfData[filename]['first_half'])
+        print("\n\n")
+            
+
+    
+    
     exit()
+    
+    
+    
     ##Basic Simulation of all cost equivalent simulations w/ maximum fleet capacity.
     for fleetCapacity in range(3,7):
         for cost in range(2,21): #cost is cost
             print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
-            Simulate(cost,fleetCapacity,"Results/test")
+            Simulate(cost,fleetCapacity,"Results/BasicResults")
             results=[]
             
-    
