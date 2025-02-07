@@ -6,10 +6,15 @@ Create combat metrics for cost efficiency of each unit via monte-carlo simulatio
 
 ## Questions:
 1. Baseline composition setups w/ same Cost
-	1a. 3-5
-	1b. 6-10
-	1c. 11-15
-	1d. 16-20
+	
+ 1a. 3-5
+
+ 1b. 6-10
+
+ 1c. 11-15
+
+ 1d. 16-20
+
 2. Most cost efficient ships?
 3. Which Compositions punch above their weight class
 4. Best upgrades?
