@@ -18,8 +18,35 @@ vectors = np.array([
     [2, 0],     # Cruiser
     [1, 0],     # Destroyer
     [4, 1],     # Dreadnaught
+    [8, 3],      #Flagship *TENTATIVE VALUES
     [12, 6]     # Warsun
 ])
+
+factions = ["Arborec",
+            "Barony",
+            "Saar",
+            "Muaat",
+            "Hacan",
+            "Sol",
+            "Ghost",
+            "L1Z1X",
+            "Mentak",
+            "Naalu",
+            "Nekro",
+            "Sardakk",
+            "Jol-Nar",
+            "Winnu",
+            "Xxcha",
+            "Yin",
+            "Yssaril",
+            "Argent",
+            "Empyrean",
+            "Mahact",
+            "NaazRokha",
+            "Nomad",
+            "Ul",
+            "Cabal",
+            "Keleres"]
 
 def read_first_half_of_rows(directory):
     """Reads the first half of all rows from each CSV file in the specified directory."""
@@ -58,11 +85,11 @@ def sort_key(ship):
     hit_value = ship.hit[0] if isinstance(ship.hit, list) else ship.hit
     return (-hit_value, ship.priority)  # Sort by hit value
 
-def find_all_combinations(N, capacity):
+def find_all_combinations(N, capacity): #TODO add faction
     solutions = []
     
     # Limit for coefficients (you can adjust this based on your needs)
-    max_coeff = (N //vectors[:, 0] +1) # Convert to integer
+    max_coeff = (N //vectors[:, 0] +1) 
 
     max_coeff = max_coeff.astype(int)
     
@@ -81,25 +108,28 @@ def find_all_combinations(N, capacity):
                     for a5 in range(0,max_coeff[4],1):
                         #print("Dreadnaught:",a5)
                         for a6 in range(0,max_coeff[5],1):
-                            #print("Warsun:",a6)
-                            ## Calculate the resulting vector
-                            X = (a1 * vectors[0][0] + a2 * vectors[1][0] +
-                                 a3 * vectors[2][0] + a4 * vectors[3][0] +
-                                 a5 * vectors[4][0] + a6 * vectors[5][0])
-                            
-                            Y = (a1 * vectors[0][1] + a2 * vectors[1][1] +
-                                 a3 * vectors[2][1] + a4 * vectors[3][1] +
-                                 a5 * vectors[4][1] + a6 * vectors[5][1])
-                                 
-                            C = a2 + a3 + a4 +a5  + a6 
-                            
-                            # Check the conditions
-                            if X == N and Y >= 0 and C <=capacity:
-                                solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), 0))
-    
+                        #print("Flagship:",a5)
+                            for a7 in range(0,max_coeff[6],1):
+                                #print("Warsun:",a6)
+                                
+                                ## Calculate the resulting vector
+                                X = (a1 * vectors[0][0] + a2 * vectors[1][0] +
+                                     a3 * vectors[2][0] + a4 * vectors[3][0] +
+                                     a5 * vectors[4][0] + a6 * vectors[5][0] + a7*vectors[6][1])
+                                
+                                Y = (a1 * vectors[0][1] + a2 * vectors[1][1] +
+                                     a3 * vectors[2][1] + a4 * vectors[3][1] +
+                                     a5 * vectors[4][1] + a6 * vectors[5][1] + a7*vectors[6][1])
+                                     
+                                C = a2 + a3 + a4 +a5  + a6 
+                                
+                                # Check the conditions
+                                if X == N and Y >= 0 and C <=capacity:
+                                    solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), 0))
+        
     return solutions
 
-def createFleet(fleet):
+def createFleet(fleet, faction):
     #print("Creating Fleet: ",fleet)
     newFleet=[]
     
@@ -118,14 +148,15 @@ def createFleet(fleet):
     for i in range(fleet[4]):
         newFleet.append(Dreadnaught())
         
-    #for i in range(fleet[5]):
-        #newFleet.append(Flagship(faction))
-        
     for i in range(fleet[5]):
-        newFleet.append(Warsun())
+        newFleet.append(Flagship(faction))
         
+    for i in range(fleet[6]):
+        newFleet.append(Warsun())
     
     return(newFleet)
+    
+    
     
 def assignHits(fleet1,hits, AFB=0): #TODO use fleet2 for better hit assignment
     #assign hits to members of fleet1,
@@ -190,6 +221,48 @@ def Combat(fleet1,fleet2):
         f2=f20
         round=1
         
+        ##Before Flagship Modifier
+        flag1 = next((flagship for flagship in fleet1 if isinstance(flagship, Flagship)), Ship()) #return default ship instead 
+        flag2 = next((flagship for flagship in fleet2 if isinstance(flagship, Flagship)), Ship()) #return default ship instead
+        
+        Yin1= flag1.BeforeModifier(fleet2)
+        Yin2= flag2.BeforeModifier(fleet1)
+   
+   
+        ##Space Cannon
+        f1SC = [f.spaceCannon for f in f1]
+        f2SC = [f.spaceCannon for f in f2]
+        
+        NoNone1SC = [item for item in f1SC if item is not None] #remove none
+        NoNone2SC = [item for item in f2SC if item is not None] #remove none
+        
+        flat1SC = np.array(NoNone1SC).flatten() #flatten
+        flat2SC= np.array(NoNone2SC).flatten() #flatten
+        
+        #roll dice
+        r1 = np.random.randint(0, 10, size=len(flat1SC))
+        r2 = np.random.randint(0, 10, size=len(flat2SC))
+        
+        #compare two
+        h1 = np.sum(flat1SC <= r1)
+        h2 = np.sum(flat2SC <= r2)
+        
+        #assign hits
+        if h2>0:
+            #print("\n\nFleet 1: ")
+            #print("\n\nAssign Hits: ")
+            #print(f1)
+            f1=assignHits(f1,h2)
+            #print(f1)
+        
+        if h1>0:     
+            #print("\n\nFLEET 2:")
+            #print(f2)
+            f2=assignHits(f2,h1)
+            #print(f2)
+        
+        
+        
         ##Anti-Fighter Barrage, happens only at start
         f1AFB = [f.AFB for f in f1]
         f2AFB = [f.AFB for f in f2]
@@ -213,13 +286,13 @@ def Combat(fleet1,fleet2):
             #print("\n\nFleet 1: ")
             #print("\n\nAssign Hits: ")
             #print(f1)
-            f1=assignHits(f1,h2,1)
+            f1=assignHits(f1,h2,AFB=1)
             #print(f1)
         
         if h1>0:     
             #print("\n\nFLEET 2:")
             #print(f2)
-            f2=assignHits(f2,h1,1)
+            f2=assignHits(f2,h1,AFB=1)
             #print(f2)
         
         
@@ -287,15 +360,16 @@ def Combat(fleet1,fleet2):
                 
                 
         ##SCORING      
-        if len(f1)==len(f2)==0: #Draw
-            f1stat[2]= f1stat[2]+1
-            f2stat[2]= f2stat[2]+1
-        elif len(f1)==0: #F2 Wins
+        
+        if len(f1)==0 and not Yin1: #F2 Wins, unless F1 has Yin Flagship
             f1stat[1]= f1stat[1]+1
             f2stat[0]= f2stat[0]+1
-        elif len(f2)==0: #F1 Wins
+        elif len(f2)==0 and not Yin2: #F1 Wins, unless F2 has Yin Flagship
             f1stat[0]= f1stat[0]+1
-            f2stat[1]= f2stat[1]+1    
+            f2stat[1]= f2stat[1]+1 
+        else: #Draw
+            f1stat[2]= f1stat[2]+1
+            f2stat[2]= f2stat[2]+1
         
             
     f1score = f1stat[0] + (f1stat[2]/2)
@@ -367,9 +441,12 @@ def Simulate(cost, capacity, subdir):
     with open(filename, 'w', newline='') as f:
         # Using csv.writer method from CSV package
         write = csv.writer(f)
-        fields = ["Fighters","Carriers","Cruisers","Destroyers","Dreadnaught","Warsun","Score", "FleetSize","WinRate", "Cost"]
+        fields = ["Fighters","Carriers","Cruisers","Destroyers","Dreadnaught","Flagship","Warsun","Score", "FleetSize","WinRate", "Cost"]
         write.writerow(fields)  # Write the header
         write.writerows(resultsSorted)  # Write the data rows
+
+
+
 
 
 
@@ -384,8 +461,6 @@ def createAllSimulations(cost,fleetCapacity,subdir):
             results=[]
         
         
-def         
-
 #MAIN
 if __name__ == "__main__":
     
