@@ -8,7 +8,7 @@ import sys
 import os
 
 
-MaxRounds=500
+MaxRounds=1000
 
 
 # Define the Ship Vectors
@@ -125,7 +125,7 @@ def find_all_combinations(N, capacity): #TODO add faction
                                 
                                 # Check the conditions
                                 if X == N and Y >= 0 and C <=capacity:
-                                    solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), 0))
+                                    solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), int(a7), 0))
         
     return solutions
 
@@ -162,7 +162,7 @@ def assignHits(fleet1,hits, AFB=0): #TODO use fleet2 for better hit assignment
     #assign hits to members of fleet1,
     #CHALLENGE: varying ordering of destroyer
     #print("Assign:\t\tHits: ",hits, ", Fleet: ",fleet1)
-    
+   
     if hits==0:
         return fleet1
     
@@ -198,13 +198,13 @@ def assignHits(fleet1,hits, AFB=0): #TODO use fleet2 for better hit assignment
 
 
 
-def Combat(fleet1,fleet2):
+def Combat(fleet1,fleet2,faction1, faction2):
     #create fleets
-    f1=createFleet(fleet1)
-    f2=createFleet(fleet2)
+    f1=createFleet(fleet1,faction1)
+    f2=createFleet(fleet2,faction2)
     
-    f10=f1
-    f20=f2
+    f10=f1.copy()
+    f20=f2.copy()
     
 
     #Combat
@@ -213,20 +213,22 @@ def Combat(fleet1,fleet2):
     
  
 
-
+    #print("Fleet1:\t",fleet1)
+    #print("Fleet2:\t",fleet2)    
     
     #Repeat for 100 Rounds
     for i in range(MaxRounds):
-        f1=f10
-        f2=f20
-        round=1
+        #print(i,":\t",f1stat, " - ",f2stat)
+        f1=f10.copy()
+        f2=f20.copy()
+        #print(f1," - ",f2)
         
         ##Before Flagship Modifier
-        flag1 = next((flagship for flagship in fleet1 if isinstance(flagship, Flagship)), Ship()) #return default ship instead 
-        flag2 = next((flagship for flagship in fleet2 if isinstance(flagship, Flagship)), Ship()) #return default ship instead
+        flag1 = next((flagship for flagship in f1 if isinstance(flagship, Flagship)), Ship(0,0,0,0,"SHIP",0)) #return default ship instead 
+        flag2 = next((flagship for flagship in f2 if isinstance(flagship, Flagship)), Ship(0,0,0,0,"SHIP",0)) #return default ship instead
         
-        Yin1= flag1.BeforeModifier(fleet2)
-        Yin2= flag2.BeforeModifier(fleet1)
+        Yin1= flag1.BeforeModifier(f2)
+        Yin2= flag2.BeforeModifier(f1)
    
    
         ##Space Cannon
@@ -297,6 +299,9 @@ def Combat(fleet1,fleet2):
         
         
         
+        ##Regular Combat
+        round=1
+        #print("\n\n")
         while (len(f1)>0 and len(f2) > 0): #while someone has units
             #print("\n\n COMBAT ROUND: ",round)
             #print(len(f1))
@@ -305,14 +310,11 @@ def Combat(fleet1,fleet2):
             
             ##Regular Combat
             #Get hit
-            #print(f1)
-            
             f1hit = [item.hit for sublist in f1 for item in (sublist if isinstance(sublist, list) else [sublist])]
             f2hit = [item.hit for sublist in f2 for item in (sublist if isinstance(sublist, list) else [sublist])]
-                        
-            #print(f1hit)
-            #print(f2hit)
+                                   
             
+            ##flatten list
             for f in f1hit:
                 #print(f," - ",isinstance(f,list))
                 if isinstance(f,list):
@@ -328,15 +330,15 @@ def Combat(fleet1,fleet2):
                         f2hit.append(ff)
                     f2hit.remove(f)       
 
-            #print(f1hit)
-            #print(f2hit)
+            #print("tohit 1: ",f1hit)
+            #print("tohit 2: ",f2hit)
             
             #roll dice
             r1 = np.random.randint(0, 10, size=len(f1hit))
             r2 = np.random.randint(0, 10, size=len(f2hit))
             
-            #print(r1)
-            
+            #print("\nr1: ",r1)
+            #print("r2: ",r2)
             #compare two
             h1 = np.sum(f1hit <= r1)
             h2 = np.sum(f2hit <= r2)
@@ -345,18 +347,15 @@ def Combat(fleet1,fleet2):
             #print(h2)
             
             #assign hits
-            if h2>0:
-                #print("\n\nFleet 1: ")
-                #print("\n\nAssign Hits: ")
-                #print(f1)
-                f1=assignHits(f1,h2)
-                #print(f1)
-            
             if h1>0:     
-                #print("\n\nFLEET 2:")
-                #print(f2)
+                #print("hits 1: ",h1)
                 f2=assignHits(f2,h1)
-                #print(f2)
+            
+            if h2>0:
+                #print("hits 2: ",h2)
+                f1=assignHits(f1,h2)
+                            
+
                 
                 
         ##SCORING      
@@ -381,14 +380,16 @@ def Combat(fleet1,fleet2):
 
 
 
-def Simulate(cost, capacity, subdir):
+def Simulate(cost, capacity, subdir, faction): #Currently 1 faction only
+    #print("\nSimulate: ",cost, " - ", capacity, " - ",faction)
     N =  cost# Example value for N
-    print("Create all Fleet Combinations: ",N)
+    #print("Create all Fleet Combinations: ",N)
     fleets = find_all_combinations(N, capacity)
+    #print("!!!! NUM FLEETS: ",len(fleets))
     #for fleet in fleets:
         #print(f"Fleet: {fleet}")
 
-    print("\n\nBegin Combat")
+    #print("\n\nBegin Combat")
 
     #match all combinations:
     matchups = list(combinations(range(0,len(fleets)), 2))
@@ -402,7 +403,7 @@ def Simulate(cost, capacity, subdir):
         #mNumber=mNumber+1
         #print(mNumber/len(matchups))
         #print("Matchup: ",fleets[matchup[0]],fleets[matchup[1]])
-        [f1score,f2score] =Combat(fleets[matchup[0]],fleets[matchup[1]])
+        [f1score,f2score] =Combat(fleets[matchup[0]],fleets[matchup[1]], faction,faction) #TODO: MAke different factions
         #print(f1score)
         #print(f2score)
         #print( fleets[matchup[0]][-1])
@@ -413,30 +414,34 @@ def Simulate(cost, capacity, subdir):
      
      
      
-    print("\nSave Results")
+    #print("\nSave Results")
     
     numRounds=((len(fleets)-1)*MaxRounds)
      
     #print("NumRounds: ",numRounds)
-     
-     
-   
+    results=[]
     for f in fleets:
+        
+        #print("\n\nORDER\n")
+        #print([row[6] for row in results])
+        #resultsSorted = sorted(results, key=lambda x: x[7], reverse=True)
+        #print([row[6] for row in resultsSorted])
+
         #print(f)
         fleetSize=np.sum(f[:-1]) - f[0]
         #print("fleetSize: ",fleetSize)
+        #print("Score: ",f[-1], "\tnumrounds: ",numRounds,"WinRate: ",f[-1]/numRounds)
         f=np.append(f,[fleetSize,f[-1]/numRounds, N])
         results.append(f)
     
-    #print("\n\nORDER\n")
-    #print([row[6] for row in results])
-    resultsSorted = sorted(results, key=lambda x: x[6], reverse=True)
-    #print([row[6] for row in resultsSorted])
+    resultsSorted = sorted(results, key=lambda x: x[7], reverse=True)
+   
 
     # Get the current timestamp and format it
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
     filename = f"{subdir}\TIResults_Cost_{N}_Capacity_{capacity}.csv"  # Create the filename with variables
         
+    #print("!!!! NUM resultsSorted: ",len(resultsSorted))
     # Open the CSV file with newline='' to prevent extra new lines
     with open(filename, 'w', newline='') as f:
         # Using csv.writer method from CSV package
@@ -457,7 +462,7 @@ def createAllSimulations(cost,fleetCapacity,subdir):
     for fleetCapacity in range(fleetCapacity[0],fleetCapacity[1]):
         for cost in range(2,cost):
             print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
-            Simulate(cost,fleetCapacity,subdir)
+            Simulate(cost,fleetCapacity,subdir, factions[0]) #Arborec
             results=[]
         
         
@@ -468,6 +473,13 @@ if __name__ == "__main__":
     
     for i, arg in enumerate(sys.argv[1:], start=1):
         print(f"Argument {i}: {arg}")
+       
+
+
+    createAllSimulations(10,[3,5],"Results\\testStuff")
+    exit()
+
+        
     
     directory = "Results/BasicResults"
     halfData = read_first_half_of_rows(directory)
@@ -484,10 +496,5 @@ if __name__ == "__main__":
     
     
     
-    ##Basic Simulation of all cost equivalent simulations w/ maximum fleet capacity.
-    for fleetCapacity in range(3,7):
-        for cost in range(2,21): #cost is cost
-            print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
-            Simulate(cost,fleetCapacity,"Results/BasicResults")
-            results=[]
-            
+    createAllSimulations(4,5,"Results/testStuff")
+    exit()

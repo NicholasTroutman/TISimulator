@@ -19,7 +19,7 @@ class Ship:
         
     ##Flagship Combat Phase Special abilities, overwritten only by specific flagships
         
-    def BeforeModifier():
+    def BeforeModifier(self,enemyFleet):
         pass
     
     def RollModifier():
@@ -145,7 +145,7 @@ class Flagship(Ship):
         for ship in enemyFleet:
             ship.hp=1
             
-    def YinEndofCombat(self): ##returns true flag that will be checked to let Yin always win
+    def YinBeforeModifier(self,enemyFleet): ##returns true flag that will be checked to let Yin always win
         return True
             
     ##Start of Combat Loop (Empyrean)
