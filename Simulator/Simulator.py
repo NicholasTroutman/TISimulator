@@ -8,17 +8,17 @@ import sys
 import os
 
 
-MaxRounds=1000
+MaxRounds=400
 
 
-# Define the Ship Vectors
+# Define the Ship Vectors, as basic
 vectors = np.array([
     [0.5, -1],  # Fighter
     [3, 4],    # Carrier
     [2, 0],     # Cruiser
     [1, 0],     # Destroyer
     [4, 1],     # Dreadnaught
-    [8, 3],      #Flagship *TENTATIVE VALUES
+    [8, 3],      #Flagship *TENTATIVE 1
     [12, 6]     # Warsun
 ])
 
@@ -80,79 +80,97 @@ def read_first_half_of_rows(directory):
 
     return results #in a dictionary, results[filename]['first_half'] to get data in list of lists
 
+
+
 def sort_key(ship):
     # If hit is a list, use the first element; otherwise, use the hit value directly
     hit_value = ship.hit[0] if isinstance(ship.hit, list) else ship.hit
     return (-hit_value, ship.priority)  # Sort by hit value
 
-def find_all_combinations(N, capacity): #TODO add faction
+
+
+
+
+def find_all_combinations(N, capacity):
     solutions = []
     
-    # Limit for coefficients (you can adjust this based on your needs)
-    max_coeff = (N //vectors[:, 0] +1) 
-
-    max_coeff = max_coeff.astype(int)
-    
-    #print(max_coeff)
-   
-    # Iterate through possible coefficients
-    #print("START RANGE")
-    for a1 in range(0,max_coeff[0],2):
-        #print("\n\nFighter: ",a1)
-        for a2 in range(0,max_coeff[1],1):
-            #print("Carrier: ",a2)
-            for a3 in range(0,max_coeff[2],1):
-                #print("Cruiser:",a3)
-                for a4 in range(0,max_coeff[3],1):
-                    #print("Destroyer:",a4)
-                    for a5 in range(0,max_coeff[4],1):
-                        #print("Dreadnaught:",a5)
-                        for a6 in range(0,max_coeff[5],1):
-                        #print("Flagship:",a5)
-                            for a7 in range(0,max_coeff[6],1):
-                                #print("Warsun:",a6)
-                                
-                                ## Calculate the resulting vector
-                                X = (a1 * vectors[0][0] + a2 * vectors[1][0] +
-                                     a3 * vectors[2][0] + a4 * vectors[3][0] +
-                                     a5 * vectors[4][0] + a6 * vectors[5][0] + a7*vectors[6][1])
-                                
-                                Y = (a1 * vectors[0][1] + a2 * vectors[1][1] +
-                                     a3 * vectors[2][1] + a4 * vectors[3][1] +
-                                     a5 * vectors[4][1] + a6 * vectors[5][1] + a7*vectors[6][1])
-                                     
-                                C = a2 + a3 + a4 +a5  + a6 
-                                
-                                # Check the conditions
-                                if X == N and Y >= 0 and C <=capacity:
-                                    solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), int(a7), 0))
+    for faction in factions:
+        #print(faction)
         
+        ##Define Flagship vector
+        vectors[6][1]=Flagship(faction).capacity
+        
+        ##TODO upgrades for other ships
+        
+        # Limit for coefficients (you can adjust this based on your needs)
+        max_coeff = (N //vectors[:, 0] +1) 
+
+        max_coeff = max_coeff.astype(int)
+        
+        #print(max_coeff)
+       
+        # Iterate through possible coefficients
+        #print("START RANGE")
+        for a1 in range(0,max_coeff[0],2):
+            #print("\n\nFighter: ",a1)
+            for a2 in range(0,max_coeff[1],1):
+                #print("Carrier: ",a2)
+                for a3 in range(0,max_coeff[2],1):
+                    #print("Cruiser:",a3)
+                    for a4 in range(0,max_coeff[3],1):
+                        #print("Destroyer:",a4)
+                        for a5 in range(0,max_coeff[4],1):
+                            #print("Dreadnaught:",a5)
+                            for a6 in range(0,max_coeff[5],1):
+                            #print("Flagship:",a5)
+                                for a7 in range(0,max_coeff[6],1):
+                                    #print("Warsun:",a6)
+                                    
+                                    ## Calculate the resulting vector
+                                    X = (a1 * vectors[0][0] + a2 * vectors[1][0] +
+                                         a3 * vectors[2][0] + a4 * vectors[3][0] +
+                                         a5 * vectors[4][0] + a6 * vectors[5][0] + a7*vectors[6][1])
+                                    
+                                    Y = (a1 * vectors[0][1] + a2 * vectors[1][1] +
+                                         a3 * vectors[2][1] + a4 * vectors[3][1] +
+                                         a5 * vectors[4][1] + a6 * vectors[5][1] + a7*vectors[6][1])
+                                         
+                                    C = a2 + a3 + a4 +a5  + a6 
+                                    
+                                    # Check the conditions
+                                    if X == N and Y >= 0 and C <=capacity:
+                                        solutions.append((int(a1), int(a2), int(a3), int(a4), int(a5), int(a6), int(a7), faction, 0))
+            
+   # print(solutions)
+    #exit()
     return solutions
 
-def createFleet(fleet, faction):
+def createFleet(fleet):
     #print("Creating Fleet: ",fleet)
+    fleetFaction=fleet[7]
+    
     newFleet=[]
     
     for i in range(fleet[0]):
-        newFleet.append(Fighter())
+        newFleet.append(Fighter(faction=fleetFaction))
         
     for i in range(fleet[1]):
-        newFleet.append(Carrier())
+        newFleet.append(Carrier(faction=fleetFaction))
        
     for i in range(fleet[2]):
-        newFleet.append(Cruiser())
+        newFleet.append(Cruiser(faction=fleetFaction))
         
     for i in range(fleet[3]):
-        newFleet.append(Destroyer())
+        newFleet.append(Destroyer(faction=fleetFaction))
         
     for i in range(fleet[4]):
-        newFleet.append(Dreadnaught())
+        newFleet.append(Dreadnaught(faction=fleetFaction))
         
     for i in range(fleet[5]):
-        newFleet.append(Flagship(faction))
+        newFleet.append(Flagship(faction=fleetFaction))
         
     for i in range(fleet[6]):
-        newFleet.append(Warsun())
+        newFleet.append(Warsun(faction=fleetFaction))
     
     return(newFleet)
     
@@ -198,10 +216,10 @@ def assignHits(fleet1,hits, AFB=0): #TODO use fleet2 for better hit assignment
 
 
 
-def Combat(fleet1,fleet2,faction1, faction2):
+def Combat(fleet1,fleet2):
     #create fleets
-    f1=createFleet(fleet1,faction1)
-    f2=createFleet(fleet2,faction2)
+    f1=createFleet(fleet1)
+    f2=createFleet(fleet2)
     
     f10=f1.copy()
     f20=f2.copy()
@@ -235,8 +253,8 @@ def Combat(fleet1,fleet2,faction1, faction2):
         f1SC = [f.spaceCannon for f in f1]
         f2SC = [f.spaceCannon for f in f2]
         
-        NoNone1SC = [item for item in f1SC if item is not None] #remove none
-        NoNone2SC = [item for item in f2SC if item is not None] #remove none
+        NoNone1SC = [item for item in f1SC for item in f1SC if item is not None]
+        NoNone2SC = [item for item in f2SC for item in f2SC if item is not None]
         
         flat1SC = np.array(NoNone1SC).flatten() #flatten
         flat2SC= np.array(NoNone2SC).flatten() #flatten
@@ -269,8 +287,19 @@ def Combat(fleet1,fleet2,faction1, faction2):
         f1AFB = [f.AFB for f in f1]
         f2AFB = [f.AFB for f in f2]
         
-        NoNone1AFB = [item for item in f1AFB if item is not None] #remove none
-        NoNone2AFB = [item for item in f2AFB if item is not None] #remove none
+        #print(f2AFB)
+        NoNone1AFB=[]
+        NoNone2AFB=[]
+        for afb in f1AFB:
+            if isinstance(afb,list):
+                for a in afb:
+                   NoNone1AFB.append(a)
+        for afb in f2AFB:
+            if isinstance(afb,list):
+                for a in afb:
+                   NoNone2AFB.append(a)          
+                
+        #print(NoNone2AFB)
         
         flat1AFB = np.array(NoNone1AFB).flatten() #flatten
         flat2AFB= np.array(NoNone2AFB).flatten() #flatten
@@ -386,15 +415,16 @@ def Simulate(cost, capacity, subdir, faction): #Currently 1 faction only
     #print("Create all Fleet Combinations: ",N)
     fleets = find_all_combinations(N, capacity)
     #print("!!!! NUM FLEETS: ",len(fleets))
-    #for fleet in fleets:
+    for fleet in fleets.copy():
         #print(f"Fleet: {fleet}")
+        if fleet[5]==0 and fleet[7]!='Arborec':
+            fleets.remove(fleet)
+            #print(f"Fleet REMOVE: {fleet}")
 
     #print("\n\nBegin Combat")
 
     #match all combinations:
     matchups = list(combinations(range(0,len(fleets)), 2))
-    #for m in matchups:
-        #print(m)
         
 
     #combat
@@ -403,7 +433,7 @@ def Simulate(cost, capacity, subdir, faction): #Currently 1 faction only
         #mNumber=mNumber+1
         #print(mNumber/len(matchups))
         #print("Matchup: ",fleets[matchup[0]],fleets[matchup[1]])
-        [f1score,f2score] =Combat(fleets[matchup[0]],fleets[matchup[1]], faction,faction) #TODO: MAke different factions
+        [f1score,f2score] =Combat(fleets[matchup[0]],fleets[matchup[1]]) #TODO: MAke different factions
         #print(f1score)
         #print(f2score)
         #print( fleets[matchup[0]][-1])
@@ -428,13 +458,13 @@ def Simulate(cost, capacity, subdir, faction): #Currently 1 faction only
         #print([row[6] for row in resultsSorted])
 
         #print(f)
-        fleetSize=np.sum(f[:-1]) - f[0]
+        fleetSize=np.sum(f[1:6])
         #print("fleetSize: ",fleetSize)
         #print("Score: ",f[-1], "\tnumrounds: ",numRounds,"WinRate: ",f[-1]/numRounds)
         f=np.append(f,[fleetSize,f[-1]/numRounds, N])
         results.append(f)
     
-    resultsSorted = sorted(results, key=lambda x: x[7], reverse=True)
+    resultsSorted = sorted(results, key=lambda x: x[10], reverse=True)
    
 
     # Get the current timestamp and format it
@@ -446,7 +476,7 @@ def Simulate(cost, capacity, subdir, faction): #Currently 1 faction only
     with open(filename, 'w', newline='') as f:
         # Using csv.writer method from CSV package
         write = csv.writer(f)
-        fields = ["Fighters","Carriers","Cruisers","Destroyers","Dreadnaught","Flagship","Warsun","Score", "FleetSize","WinRate", "Cost"]
+        fields = ["Fighters","Carriers","Cruisers","Destroyers","Dreadnaught","Flagship","Warsun","Faction","Score", "FleetSize","WinRate", "Cost"]
         write.writerow(fields)  # Write the header
         write.writerows(resultsSorted)  # Write the data rows
 
@@ -476,7 +506,7 @@ if __name__ == "__main__":
        
 
 
-    createAllSimulations(10,[3,5],"Results\\testStuff")
+    createAllSimulations(14,[3,5],"Results\\testStuff")
     exit()
 
         

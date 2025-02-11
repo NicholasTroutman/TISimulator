@@ -32,3 +32,4 @@ Create combat metrics for cost efficiency of each unit via monte-carlo simulatio
 Destroyers are over-emphasized since fighters make up so much of the low-ranks.
 Split field in half and rerun calculations.
 
+Another Scoring, how much cost damage was done WIN: remaing cost proportion, draw=0, LOSE: -remaining cost proportion

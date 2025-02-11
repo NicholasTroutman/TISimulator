@@ -1,7 +1,7 @@
 class Ship:
 
     ##AFB version
-    def __init__(self, cost, hit, capacity, hp, name, priority, AFB=None, spaceCannon=None):
+    def __init__(self, cost, hit, capacity, hp, name, priority, AFB=None, spaceCannon=None, faction=None):
         self.cost=cost
         self.hit=hit
         self.hp=hp
@@ -10,6 +10,7 @@ class Ship:
         self.priority=priority
         self.AFB = AFB
         self.spaceCannon = spaceCannon
+        self.faction=faction
         
     def __str__(self):
         """Print the name and hp of the ship."""
@@ -34,7 +35,7 @@ class Ship:
 # Example usage
 
 class Fighter(Ship):
-    def __init__(self, upgrade=False):
+    def __init__(self, upgrade=False, faction=None):
         if upgrade:
             super().__init__(0.5, 8, -1, 1,"Fighter",1)
         else:
@@ -42,14 +43,14 @@ class Fighter(Ship):
         
     
 class Carrier(Ship):
-    def __init__(self, upgrade=False):
+    def __init__(self, upgrade=False, faction=None):
         if upgrade:
             super().__init__(3, 9, 6, 1,"Carrier",2)
         else:
             super().__init__(3, 9, 4, 1,"Carrier",2)
             
 class Cruiser(Ship):
-    def __init__(self, upgrade=False):
+    def __init__(self, upgrade=False, faction=None):
         if upgrade:
             super().__init__(2, 3, 1, 1,"Cruiser",3)
         else:
@@ -57,14 +58,14 @@ class Cruiser(Ship):
                 
         
 class Destroyer(Ship):
-    def __init__(self, upgrade=False):
+    def __init__(self, upgrade=False, faction=None):
         if upgrade:
             super().__init__(1, 8, 0, 1,"Destroyer",4,AFB=[6,6,6])
         else:
             super().__init__(1, 9, 0, 1,"Destroyer",4,AFB=[9,9])
                 
 class Dreadnaught(Ship):
-    def __init__(self, upgrade=False):
+    def __init__(self, upgrade=False, faction=None):
         if upgrade:
             super().__init__(4, 5, 1, 2,"Dreadnaught",5)
         else:
@@ -73,14 +74,13 @@ class Dreadnaught(Ship):
            
         
 class Warsun(Ship):
-    def __init__(self):
+    def __init__(self,  faction=None):
         super().__init__(12, [3,3,3], 6, 2,"Warsun",7) #flagship is 6
                 
                 
                
 class Flagship(Ship):
     def __init__(self, faction):
-        self.faction = faction
         flagships = {
             "Arborec": [8, [7, 7], 5, 2, "Arborec Flagship", 6],
             "Barony": [8, [5, 5], 3, 2, "Barony Flagship", 6],
@@ -99,7 +99,7 @@ class Flagship(Ship):
             "Xxcha": [8, [7, 7], 3, 2, "Xxcha Flagship", 6, [5,5,5]], ##SPACE CANNON RACE
             "Yin": [8, [9, 9], 3, 2, "Yin Flagship", 99],  # When Destroyed, destroy all ships (Assign Hits/END)
             "Yssaril": [8, [5, 5], 3, 2, "Yssaril Flagship", 6],
-            "Argent": [7, [7, 7], 3, 2, "Argent Flagship", 6],  # no space cannon against you (Before)
+            "Argent": [8, [7, 7], 3, 2, "Argent Flagship", 6],  # no space cannon against you (Before)
             "Empyrean": [8, [5, 5], 3, 2, "Empyrean Flagship", 6],  # 2 influence to repair sustain in system (START of COMBAT LOOP)
             "Mahact": [8, [3, 3], 3, 2, "Mahact Flagship", 6],  # Combat against opponent whose command token is not in your fleet pool, +2 to this unit's combat rolls, was [5,5], changed to [3,3]
             "NaazRokha": [8, [9, 9], 4, 2, "Naaz Flagship", 6],
@@ -134,11 +134,11 @@ class Flagship(Ship):
         f = flagships[faction]
         
         if faction=="Xxcha":
-            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5], spaceCannon=f[6])
+            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5], spaceCannon=f[6],faction=faction)
         elif len(f) == 6:  # Base
-            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5])
+            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5],faction=faction)
         elif len(f) == 7:  # AFB
-            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5], AFB=f[6])
+            super().__init__(f[0], f[1], f[2], f[3], f[4], f[5], AFB=f[6],faction=faction)
         
     ##BEFORE MODIFIER 
     def MentakBeforeModifier(self,enemyFleet):
