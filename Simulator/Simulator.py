@@ -344,7 +344,7 @@ def Combat(fleet1,fleet2):
                                    
             
             ##flatten list
-            for f in f1hit:
+            for f in f1hit.copy():
                 #print(f," - ",isinstance(f,list))
                 if isinstance(f,list):
                     for ff in f:
@@ -352,7 +352,7 @@ def Combat(fleet1,fleet2):
                     f1hit.remove(f)
 
             #print("F2hit: ", f2hit)
-            for f in f2hit:
+            for f in f2hit.copy():
                 #print(f)
                 if isinstance(f,list):
                     for ff in f:
@@ -362,13 +362,14 @@ def Combat(fleet1,fleet2):
             #print("tohit 1: ",f1hit)
             #print("tohit 2: ",f2hit)
             
-            #roll dice
+            #roll 
             r1 = np.random.randint(0, 10, size=len(f1hit))
             r2 = np.random.randint(0, 10, size=len(f2hit))
             
             #print("\nr1: ",r1)
             #print("r2: ",r2)
             #compare two
+            
             h1 = np.sum(f1hit <= r1)
             h2 = np.sum(f2hit <= r2)
             
@@ -490,7 +491,7 @@ results=[]
 
 def createAllSimulations(cost,fleetCapacity,subdir):
     for fleetCapacity in range(fleetCapacity[0],fleetCapacity[1]):
-        for cost in range(2,cost):
+        for cost in range(12,cost):
             print(f"Cost: {cost} - Fleet Capacity: {fleetCapacity}\n")
             Simulate(cost,fleetCapacity,subdir, factions[0]) #Arborec
             results=[]
